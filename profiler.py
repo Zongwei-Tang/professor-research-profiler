@@ -6,21 +6,19 @@ from google import genai
 
 load_dotenv()
 # Get author's basic information
-def get_author(name):
+def search_author(name):
     response = httpx.get('https://api.semanticscholar.org/graph/v1/author/search', headers={'x-api-key': os.environ['SEMANTICS_SCHOLAR_API_KEY']}, params={'query': name, 'fields': 'name,authorId,affiliations,paperCount,citationCount,hIndex', 'limit': 5})
     if response.status_code != 200:
         print(response.text)
         return None
-    r = response.json()
-    for i in r.get('data'):
-        a = input(f"name: {i.get('name')}, affiliations: {i.get('affiliations')}, paper count: {i.get('paperCount')}. Is this the professor you want to find? Type 0 (no) or 1 (yes).")
-        if int(a):
-            return i
-    return None
+    return response.json().get('data')
 
 # Get the author's papers
 def get_papers(authorid):
     r = httpx.get(f'https://api.semanticscholar.org/graph/v1/author/{authorid}', params={'fields':'papers.title,papers.year,papers.abstract,papers.citationCount,papers.authors,papers.fieldsOfStudy,papers.openAccessPdf,papers.venue'})
+    if r.status_code != 200:
+        print(r.text)
+        return None
     papers = r.json().get('papers')
     return [i for i in papers if i.get('abstract')]
 
@@ -43,7 +41,7 @@ def compute(papers):
 
 
 # Build prompt for llm
-def prompt(author, top5, by_year, coauthor, user_interest):
+def prompt(author, top5, by_year, coauthor, user_interest, language):
     prompt = f"""
         You are an academic research advisor helping PhD applicants evaluate potential supervisors.
         Analyze the following professor's research profile and assess how well they match the applicant's interests.
@@ -67,7 +65,7 @@ def prompt(author, top5, by_year, coauthor, user_interest):
         ### Applicant's Research Interests
         {user_interest}
 
-        Based on all the above, please answer the following four questions in Chinese.
+        Based on all the above, please answer the following four questions in {language}.
         Write one full paragraph per question. Use a professional but readable tone.
 
         1. What is this professor's core research direction and academic style?
@@ -126,23 +124,3 @@ def llm_process(provider, prompt):
             )
 
             return response.text
-
-def main(author_name):
-    author = get_author(author_name)
-    if author is None:
-        print("No author found.")
-        return
-
-    papers = get_papers(author["authorId"])
-    top5, by_year, coauthor = compute(papers)
-
-    user_interest = input("Your research interests: ")
-    p = prompt(author, top5, by_year, coauthor, user_interest)
-
-    provider = input('llm provider')
-    result = llm_process(provider, p)
-    print(result)
-
-
-if __name__ == "__main__":
-    main("John DeNero")
