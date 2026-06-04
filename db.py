@@ -26,8 +26,8 @@ def save_professor(conn, author, llm_text, language, provider):
             (author['authorId'], author['name'], language, provider, datetime.now().isoformat(), llm_text)
         )
 
-def search_professor(conn, id):
-    result = conn.execute("SELECT 1 FROM professors WHERE author_id = ?", (id,)).fetchone()
+def search_professor(conn, id, language):
+    result = conn.execute("SELECT 1 FROM professors WHERE author_id = ? AND language = ?", (id, language)).fetchone()
     return True if result else False
 
 def get_professor(author_id, conn):
