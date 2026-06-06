@@ -40,6 +40,7 @@ if username.strip():
         history = db.get_user_analysis_history(conn, user_id)
         for i in history:
             with st.expander(f"{i['author_name']} --{i['time']}"):
+                st.write(f"Interest: {i['interest']}")
                 st.markdown(i['analysis_text'])
 
     name = st.text_input("Professor name")
