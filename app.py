@@ -40,9 +40,9 @@ if username.strip():
         st.header(f'History: {username}')
         history = db.get_user_analysis_history(conn, user_id)
         for i in history:
-            with st.expander(f"{i['author_name']} --{i['time']}"):
-                st.write(f"Interest: {i['interest']}")
-                st.markdown(i['analysis_text'])
+            with st.expander(f"{i[3]} --{i[5]}"):
+                st.write(f"Interest: {i[6]}")
+                st.markdown(i[4])
 
     name = st.text_input("Professor name")
 
@@ -82,10 +82,13 @@ if username.strip():
                 else:
                     papers = papers_time[0] if papers_time else fetch_paper_one(conn, author)
                     analyze_one(papers, conn, author, provider, interest, language, user_id)
+                    st.rerun()
         if st.session_state.get('from_history'):
             if st.button('Rerun'):
-                papers = papers_time[0] if papers_time else fetch_paper_one(conn, author)
-                analyze_one(papers, conn, author, provider, interest, language, user_id)
+                with st.spinner('Analyzing...'):
+                    papers = papers_time[0] if papers_time else fetch_paper_one(conn, author)
+                    analyze_one(papers, conn, author, provider, interest, language, user_id)
+                    st.rerun()
         if st.session_state.get('result') and st.session_state.author_id == author['authorId']:
             st.markdown(st.session_state.result)
     elif st.session_state.candidates == []:

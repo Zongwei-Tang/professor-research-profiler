@@ -1,12 +1,13 @@
-import sqlite3
-import json
+import json, os
 from datetime import datetime
 import streamlit as st
+import libsql
+from dotenv import load_dotenv
 
+load_dotenv()
 @st.cache_resource
 def init_db():
-    conn = sqlite3.connect('professors.db', check_same_thread=False)
-    conn.row_factory = sqlite3.Row
+    conn = libsql.connect(database=os.environ.get('TURSO_DB_URL'), auth_token=os.environ.get('TURSO_DB_TOKENS'))
     conn.executescript("""
         CREATE TABLE IF NOT EXISTS professor_papers(
             author_id INTEGER PRIMARY KEY,
@@ -42,12 +43,12 @@ def save_papers(conn, author, papers):
 
 def get_papers_cache_and_time(conn, author_id):
     row = conn.execute("SELECT papers_json, time FROM professor_papers WHERE author_id = ?", (author_id,)).fetchone()
-    return [json.loads(row["papers_json"]), row['time']] if row else None
+    return [json.loads(row[0]), row[1]] if row else None
 
 def create_get_user(conn, username):
     with conn:
         conn.execute("INSERT OR IGNORE INTO users (username) VALUES (?)", (username,))
-    return conn.execute("SELECT user_id FROM users WHERE username = ?", (username,)).fetchone()['user_id']
+    return conn.execute("SELECT user_id FROM users WHERE username = ?", (username,)).fetchone()[0]
     
 def save_analysis(conn, user_id, author_id, author_name, analysis_text, interest, language, provider):
     with conn:
@@ -61,4 +62,4 @@ def get_user_analysis_history(conn, user_id):
 
 def get_one_history(conn, user_id, author_id, interest, language, provider):
     row = conn.execute("SELECT * FROM analyses WHERE user_id = ? AND author_id = ? AND interest = ? AND language = ? AND provider = ?", (user_id, author_id, interest, language, provider)).fetchone()
-    return row['analysis_text'] if row else None
+    return row[4] if row else None
