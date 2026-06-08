@@ -13,10 +13,12 @@ professor's name and your research interests; it pulls their publication record 
 - LLM analysis of their research direction, how their focus shifted, overlaps with your
   interests, and whether to reach out.
 - Choose your provider: Anthropic, OpenAI, DeepSeek, or Gemini.
+- Per-user history: past analyses are saved and shown in the sidebar.
+- Paper cache: fetched papers are stored in Turso so repeat lookups are instant.
 
 ## Running locally
 
-Requires Python 3.10+ and [uv](https://docs.astral.sh/uv/).
+Requires [uv](https://docs.astral.sh/uv/).
 
 ```bash
 uv sync                          # install dependencies
@@ -24,4 +26,5 @@ cp .env.example .env             # then fill in your API keys
 uv run streamlit run app.py
 ```
 
-You need a Semantic Scholar key plus the key for whichever LLM provider you use.
+You need a Semantic Scholar key, a [Turso](https://turso.tech/) database URL and token,
+plus the key for whichever LLM provider you use.
